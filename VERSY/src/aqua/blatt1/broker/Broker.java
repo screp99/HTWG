@@ -32,7 +32,7 @@ public class Broker {
 		ExecutorService threadPool = Executors.newFixedThreadPool(POOL_SIZE);
 		new Thread(stopServerInterface()).start();
 		while (!stopRequested) {
-			Message actualMessage = endpoint.blockingReceive();
+			Message actualMessage = endpoint.nonBlockingReceive();
 			threadPool.execute(() -> {
 				if (actualMessage.getPayload() instanceof RegisterRequest) {
 					register(actualMessage.getSender());
