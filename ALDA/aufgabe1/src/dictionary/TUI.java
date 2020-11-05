@@ -36,40 +36,40 @@ public class TUI {
 
 		switch (args[0]) {
 		case "create":
-			execCreate(Arrays.copyOfRange(args, 1, args.length));
+			executeCreate(Arrays.copyOfRange(args, 1, args.length));
 			break;
 		case "read":
 			if (isDictionaryInitialised())
-				execRead(Arrays.copyOfRange(args, 1, args.length));
+				executeRead(Arrays.copyOfRange(args, 1, args.length));
 			else
 				System.out.println("No dictionary initialised! Use 'create'");
 			break;
 		case "p":
 			if (isDictionaryInitialised())
-				execPrint();
+				executePrint();
 			else
 				System.out.println("No dictionary initialised! Use 'create'");
 			break;
 		case "s":
 			if (isDictionaryInitialised())
-				execSearch(Arrays.copyOfRange(args, 1, args.length));
+				executeSearch(Arrays.copyOfRange(args, 1, args.length));
 			else
 				System.out.println("No dictionary initialised! Use 'create'");
 			break;
 		case "i":
 			if (isDictionaryInitialised())
-				execInsert(Arrays.copyOfRange(args, 1, args.length));
+				executeInsert(Arrays.copyOfRange(args, 1, args.length));
 			else
 				System.out.println("No dictionary initialised! Use 'create'");
 			break;
 		case "r":
 			if (isDictionaryInitialised())
-				execRemove(Arrays.copyOfRange(args, 1, args.length));
+				executeRemove(Arrays.copyOfRange(args, 1, args.length));
 			else
 				System.out.println("No dictionary initialised! Use 'create'");
 			break;
 		case "exit":
-			execExit();
+			executeExit();
 			break;
 		default:
 			printHelp();
@@ -77,12 +77,12 @@ public class TUI {
 		}
 	}
 
-	private static void execExit() {
+	private static void executeExit() {
 		System.out.println("Good bye!");
 		System.exit(0);
 	}
 
-	private static void execRemove(String[] args) {
+	private static void executeRemove(String[] args) {
 		if (args.length != 1) {
 			printHelp();
 			return;
@@ -91,7 +91,7 @@ public class TUI {
 		dictionary.remove(args[0]);
 	}
 
-	private static void execInsert(String[] args) {
+	private static void executeInsert(String[] args) {
 		if (args.length != 2) {
 			printHelp();
 			return;
@@ -100,7 +100,7 @@ public class TUI {
 		dictionary.insert(args[0], args[1]);
 	}
 
-	private static void execSearch(String[] args) {
+	private static void executeSearch(String[] args) {
 		if (args.length != 1) {
 			printHelp();
 			return;
@@ -109,12 +109,12 @@ public class TUI {
 		System.out.println(dictionary.search(args[0]));
 	}
 
-	private static void execPrint() {
+	private static void executePrint() {
 		for (var element : dictionary)
 			System.out.println(element.getKey() + " - " + element.getValue());
 	}
 
-	private static void execRead(String[] args) throws Exception {
+	private static void executeRead(String[] args) throws Exception {
 		if (args.length != 1 && args.length != 2) {
 			printHelp();
 			return;
@@ -144,7 +144,7 @@ public class TUI {
 		reader.close();
 	}
 
-	private static void execCreate(String[] args) throws Exception {
+	private static void executeCreate(String[] args) throws Exception {
 		if (args.length != 1) {
 			printHelp();
 			return;

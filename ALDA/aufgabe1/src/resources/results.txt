@@ -1,0 +1,35 @@
+Actual dictionary: SortedArrayDictionary
+Word count: 8000
+InsertTime: 270 ms
+FindTime: 6 ms
+NonFindTime: 3 ms
+
+Actual dictionary: HashDictionary
+Word count: 8000
+InsertTime: 49 ms
+FindTime: 4 ms
+NonFindTime: 4 ms
+
+Actual dictionary: BinaryTreeDictionary
+Word count: 8000
+InsertTime: 20 ms
+FindTime: 7 ms
+NonFindTime: 4 ms
+
+Actual dictionary: SortedArrayDictionary
+Word count: 16000
+InsertTime: 703 ms
+FindTime: 13 ms
+NonFindTime: 10 ms
+
+Actual dictionary: HashDictionary
+Word count: 16000
+InsertTime: 26 ms
+FindTime: 10 ms
+NonFindTime: 19 ms
+
+Actual dictionary: BinaryTreeDictionary
+Word count: 16000
+InsertTime: 25 ms
+FindTime: 20 ms
+NonFindTime: 18 ms
