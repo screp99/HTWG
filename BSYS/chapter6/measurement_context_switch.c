@@ -1,7 +1,7 @@
 #define _GNU_SOURCE
 #define _POSIX_C_SOURCE 199309L
 #define BILLION 1000000000L
-#define CYCLES 10000
+#define CYCLES 10
 #include <time.h>
 #include <sys/wait.h>
 #include <stdio.h>
@@ -15,7 +15,7 @@ int cmpfunc (const void * a, const void * b);
 void setSchedAffinity();
 
 int main(void) {
-    struct timespec start, stop;
+    struct timespec start, stop, startTimeFunction, stopTimeFunction;
     int pipeToChild[2], pipeToParent[2];
     if (pipe(pipeToChild) != 0 || pipe(pipeToParent) != 0) {
         fprintf(stderr, "Creating pipes failed!");
@@ -23,6 +23,7 @@ int main(void) {
     }
     char y[2], x[2];
     long contextSwitchTime[CYCLES];
+    long durationOfTimeFunction;
     switch (fork()) {
         case -1:
             fprintf(stderr, "fork failed!\n");
@@ -44,10 +45,15 @@ int main(void) {
             showSchedAffinity();
             for (int i=0; i<CYCLES; i++) {
                 write(pipeToChild[1], "x", 2);
-                clock_gettime(CLOCK_MONOTONIC, &start);
+                clock_gettime(CLOCK_MONOTONIC_RAW, &start);
                 read(pipeToParent[0], &y, sizeof(y));
-                clock_gettime(CLOCK_MONOTONIC, &stop);
-                contextSwitchTime[i] = (((stop.tv_sec * BILLION) + stop.tv_nsec) - ((start.tv_sec * BILLION) + start.tv_nsec)) / 2;
+                clock_gettime(CLOCK_MONOTONIC_RAW, &stop);
+
+                clock_gettime(CLOCK_MONOTONIC_RAW, &startTimeFunction);
+                clock_gettime(CLOCK_MONOTONIC_RAW, &stopTimeFunction);
+                durationOfTimeFunction = (((stopTimeFunction.tv_sec * BILLION) + stopTimeFunction.tv_nsec) - ((startTimeFunction.tv_sec * BILLION) + startTimeFunction.tv_nsec));
+                printf("durationOfTimeFunction: %ld\n", durationOfTimeFunction);
+                contextSwitchTime[i] = ((((stop.tv_sec * BILLION) + stop.tv_nsec) - ((start.tv_sec * BILLION) + start.tv_nsec)) - durationOfTimeFunction) / 2;
             }
             qsort(contextSwitchTime, CYCLES, sizeof(long), cmpfunc);
             //INTERQUARTILE DISTANCE

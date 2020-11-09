@@ -19,7 +19,7 @@ int main(void) {
     clock_gettime(CLOCK_MONOTONIC, &startLoop);
     for (i=0; i<100000; i++) {}
     clock_gettime(CLOCK_MONOTONIC, &stopLoop);
-
+    
     long loopTime = (stopLoop.tv_sec * 1000000000 + stopLoop.tv_nsec) - (startLoop.tv_sec * 1000000000 + startLoop.tv_nsec);
     long totalTime = (stop.tv_sec * 1000000000 + stop.tv_nsec) - (start.tv_sec * 1000000000 + start.tv_nsec);
     long sysCallTime = (totalTime - loopTime) / 100000;
