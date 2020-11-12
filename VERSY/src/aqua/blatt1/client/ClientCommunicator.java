@@ -2,14 +2,16 @@ package aqua.blatt1.client;
 
 import java.net.InetSocketAddress;
 
-import messaging.Endpoint;
-import messaging.Message;
 import aqua.blatt1.common.FishModel;
 import aqua.blatt1.common.Properties;
 import aqua.blatt1.common.msgtypes.DeregisterRequest;
 import aqua.blatt1.common.msgtypes.HandoffRequest;
+import aqua.blatt1.common.msgtypes.NeighborUpdate;
 import aqua.blatt1.common.msgtypes.RegisterRequest;
 import aqua.blatt1.common.msgtypes.RegisterResponse;
+import aqua.blatt1.common.msgtypes.Token;
+import messaging.Endpoint;
+import messaging.Message;
 
 public class ClientCommunicator {
 	private final Endpoint endpoint;
@@ -33,8 +35,23 @@ public class ClientCommunicator {
 			endpoint.send(broker, new DeregisterRequest(id));
 		}
 
-		public void handOff(FishModel fish) {
-			endpoint.send(broker, new HandoffRequest(fish));
+		public void handOffFish(FishModel fish, TankModel tankModel) {
+			if (tankModel.hasToken()) {
+				switch (fish.getDirection()) {
+				case LEFT:
+					endpoint.send(tankModel.leftNeighbor, new HandoffRequest(fish));
+					break;
+				case RIGHT:
+					endpoint.send(tankModel.rightNeighbor, new HandoffRequest(fish));
+					break;
+				}
+			} else {
+				fish.reverse();
+			}
+		}
+
+		public void handOffToken(TankModel tankModel) {
+			endpoint.send(tankModel.leftNeighbor, Token.getInstance());
 		}
 	}
 
@@ -55,6 +72,19 @@ public class ClientCommunicator {
 
 				if (msg.getPayload() instanceof HandoffRequest)
 					tankModel.receiveFish(((HandoffRequest) msg.getPayload()).getFish());
+
+				if (msg.getPayload() instanceof Token)
+					tankModel.recieveToken();
+
+				if (msg.getPayload() instanceof NeighborUpdate) {
+					NeighborUpdate neighborUpdate = (NeighborUpdate) msg.getPayload();
+					if (neighborUpdate.getLeftNeighbor() != null) {
+						tankModel.leftNeighbor = neighborUpdate.getLeftNeighbor();
+					}
+					if (neighborUpdate.getRightNeighbor() != null) {
+						tankModel.rightNeighbor = neighborUpdate.getRightNeighbor();
+					}
+				}
 
 			}
 			System.out.println("Receiver stopped.");
