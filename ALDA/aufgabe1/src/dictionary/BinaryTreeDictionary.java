@@ -105,23 +105,35 @@ public class BinaryTreeDictionary<K extends Comparable<? super K>, V> implements
 		return this.size;
 	}
 
+	/**
+	 * Pretty prints the tree
+	 */
 	public void prettyPrint() {
-		prettyPrintR(root, 0);
+		printR(0, root);
 	}
 
-	private void prettyPrintR(Node<K, V> p, int depth) {
-		for (int x = 0; x < depth; x++)
-			System.out.print("  ");
-
+	private void printR(int level, Node<K, V> p) {
+		printLevel(level);
 		if (p == null) {
-			System.out.print("#\n");
+			System.out.println("#");
+		} else {
+			System.out.println(p.entry.getKey() + " " + p.entry.getValue() + "^"
+					+ ((p.parent == null) ? "null" : p.parent.entry.getKey().toString()));
+			if (p.left != null || p.right != null) {
+				printR(level + 1, p.left);
+				printR(level + 1, p.right);
+			}
+		}
+	}
+
+	private static void printLevel(int level) {
+		if (level == 0) {
 			return;
 		}
-
-		System.out.print(String.format("(%s: %s)\n", p.entry.getKey(), p.entry.getValue()));
-
-		prettyPrintR(p.left, depth + 1);
-		prettyPrintR(p.right, depth + 1);
+		for (int i = 0; i < level - 1; i++) {
+			System.out.print("   ");
+		}
+		System.out.print("|__");
 	}
 
 	private int getHeight(Node<K, V> p) {
