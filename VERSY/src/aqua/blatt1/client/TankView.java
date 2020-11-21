@@ -10,6 +10,7 @@ import java.awt.event.MouseEvent;
 import java.util.Observable;
 import java.util.Observer;
 
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
@@ -34,7 +35,6 @@ public class TankView extends JPanel implements Observer {
 
 		setPreferredSize(new Dimension(TankModel.WIDTH, TankModel.HEIGHT));
 		setBackground(new Color(175, 200, 235));
-
 		addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
@@ -62,6 +62,7 @@ public class TankView extends JPanel implements Observer {
 		}
 
 	}
+
 
 	@Override
 	public void paintComponent(Graphics g) {

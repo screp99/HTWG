@@ -9,6 +9,8 @@ import aqua.blatt1.common.msgtypes.HandoffRequest;
 import aqua.blatt1.common.msgtypes.NeighborUpdate;
 import aqua.blatt1.common.msgtypes.RegisterRequest;
 import aqua.blatt1.common.msgtypes.RegisterResponse;
+import aqua.blatt1.common.msgtypes.SnapshotCollectorToken;
+import aqua.blatt1.common.msgtypes.SnapshotMarker;
 import aqua.blatt1.common.msgtypes.Token;
 import messaging.Endpoint;
 import messaging.Message;
@@ -53,6 +55,15 @@ public class ClientCommunicator {
 		public void handOffToken(TankModel tankModel) {
 			endpoint.send(tankModel.leftNeighbor, Token.getInstance());
 		}
+		
+		public void mark(TankModel tankModel) {
+			endpoint.send(tankModel.leftNeighbor, new SnapshotMarker());
+			endpoint.send(tankModel.rightNeighbor, new SnapshotMarker());
+		}
+		
+		public void handOffCollector(TankModel tankModel, SnapshotCollectorToken collector) {
+			endpoint.send(tankModel.leftNeighbor, collector);
+		}
 	}
 
 	public class ClientReceiver extends Thread {
@@ -75,6 +86,16 @@ public class ClientCommunicator {
 
 				if (msg.getPayload() instanceof Token)
 					tankModel.recieveToken();
+				
+				if (msg.getPayload() instanceof SnapshotCollectorToken)
+					tankModel.recieveCollector((SnapshotCollectorToken) msg.getPayload());
+				
+				if (msg.getPayload() instanceof SnapshotMarker)
+					if (msg.getSender().equals(tankModel.leftNeighbor)) {
+						tankModel.recieveMarkerFromLeft();						
+					} else {
+						tankModel.recieveMarkerFromRight();	
+					}
 
 				if (msg.getPayload() instanceof NeighborUpdate) {
 					NeighborUpdate neighborUpdate = (NeighborUpdate) msg.getPayload();

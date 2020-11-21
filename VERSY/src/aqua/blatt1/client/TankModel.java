@@ -1,8 +1,10 @@
 package aqua.blatt1.client;
 
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Observable;
 import java.util.Random;
 import java.util.Set;
@@ -13,7 +15,11 @@ import java.util.concurrent.TimeUnit;
 
 import aqua.blatt1.common.Direction;
 import aqua.blatt1.common.FishModel;
+import aqua.blatt1.common.msgtypes.SnapshotCollectorToken;
 
+enum RecordingMode { IDLE, LEFT, RIGHT, BOTH }
+
+@SuppressWarnings("deprecation")
 public class TankModel extends Observable implements Iterable<FishModel> {
 
 	public static final int WIDTH = 600;
@@ -28,6 +34,13 @@ public class TankModel extends Observable implements Iterable<FishModel> {
 	protected InetSocketAddress rightNeighbor;
 	protected Timer timer = new Timer();
 	private volatile Boolean hasToken = false;
+	private volatile Boolean isInitiator = false;
+	private volatile SnapshotCollectorToken collector;
+	private volatile int currentNumberOfFishies = 0;
+	protected volatile Integer snapshot = 0;
+	private volatile RecordingMode recordingMode = RecordingMode.IDLE;
+	protected volatile List<FishModel> stateOfRight = new ArrayList<FishModel>();
+	protected volatile List<FishModel> stateOfLeft = new ArrayList<FishModel>();
 
 	public TankModel(ClientCommunicator.ClientForwarder forwarder) {
 		this.fishies = Collections.newSetFromMap(new ConcurrentHashMap<FishModel, Boolean>());
@@ -54,6 +67,13 @@ public class TankModel extends Observable implements Iterable<FishModel> {
 	synchronized void receiveFish(FishModel fish) {
 		fish.setToStart();
 		fishies.add(fish);
+		if (this.recordingMode != RecordingMode.IDLE) {
+			if (this.recordingMode != RecordingMode.RIGHT && fish.getDirection() == Direction.RIGHT) {
+				this.stateOfLeft.add(fish);
+			} else if (this.recordingMode != RecordingMode.LEFT && fish.getDirection() == Direction.LEFT) {
+				this.stateOfRight.add(fish);
+			}
+		}
 	}
 
 	public String getId() {
@@ -120,6 +140,75 @@ public class TankModel extends Observable implements Iterable<FishModel> {
 
 	protected synchronized Boolean hasToken() {
 		return this.hasToken;
+	}
+	
+	protected synchronized void initiateSnapshot() {
+		this.isInitiator = true;
+		startFishCounter();
+		this.recordingMode = RecordingMode.BOTH;
+		forwarder.mark(this);
+		this.collector = new SnapshotCollectorToken();
+	}
+
+	synchronized void recieveMarkerFromLeft() {
+		if (this.recordingMode == RecordingMode.IDLE) {
+			startFishCounter();
+			this.recordingMode = RecordingMode.RIGHT;
+			forwarder.mark(this);
+		} else {
+			if (this.recordingMode == RecordingMode.BOTH) {
+				this.recordingMode = RecordingMode.RIGHT;
+			} else {
+				this.recordingMode = RecordingMode.IDLE;
+				this.currentNumberOfFishies += this.stateOfLeft.size() + this.stateOfRight.size();
+				if (this.collector != null) {
+					handOffCollector();
+				}
+			}
+		}
+	}
+	
+	private synchronized void handOffCollector() {
+		this.collector.addNumberOfFishies(this.currentNumberOfFishies);
+		forwarder.handOffCollector(this, collector);
+		this.currentNumberOfFishies = 0;
+		this.stateOfLeft = new ArrayList<FishModel>();
+		this.stateOfRight= new ArrayList<FishModel>();
+		this.collector = null;
+	}
+	
+	synchronized void recieveMarkerFromRight() {
+		if (this.recordingMode == RecordingMode.IDLE) {
+			startFishCounter();
+			this.recordingMode = RecordingMode.LEFT;			
+			forwarder.mark(this);
+		} else {
+			if (this.recordingMode == RecordingMode.BOTH) {
+				this.recordingMode = RecordingMode.LEFT;
+			} else {
+				this.recordingMode = RecordingMode.IDLE;
+				this.currentNumberOfFishies += this.stateOfLeft.size() + this.stateOfRight.size();
+			}
+		}
+	}
+	
+	private synchronized void startFishCounter() {
+		Iterator<FishModel> it = iterator();
+		currentNumberOfFishies = 0;
+		while (it.hasNext()) {
+			it.next();
+			currentNumberOfFishies++;
+		}
+	}
+
+	public synchronized void recieveCollector(SnapshotCollectorToken collector) {
+		this.collector = collector;
+		if (this.isInitiator == true) {
+			this.isInitiator = false;
+			this.snapshot = collector.getNumberOfFishies();
+		} else if (this.recordingMode == RecordingMode.IDLE) {
+			handOffCollector();
+		}
 	}
 
 }

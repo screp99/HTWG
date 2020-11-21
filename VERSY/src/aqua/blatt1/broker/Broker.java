@@ -24,7 +24,6 @@ public class Broker {
 	private static final int POOL_SIZE = 10;
 	private volatile int idIndex = 1;
 	private volatile boolean stopRequested = false;
-	private ReadWriteLock lock = new ReentrantReadWriteLock();
 	private Endpoint endpoint = new Endpoint(Properties.PORT);
 	private volatile ClientCollection<InetSocketAddress> clients = new ClientCollection<>();
 
